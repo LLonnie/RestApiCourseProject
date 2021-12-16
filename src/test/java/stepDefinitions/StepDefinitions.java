@@ -14,6 +14,8 @@ import org.testng.Assert;
 import resources.TestDataBuild;
 import resources.Utilities;
 
+import java.io.IOException;
+
 import static io.restassured.RestAssured.given;
 
 public class StepDefinitions extends Utilities {
@@ -25,8 +27,8 @@ public class StepDefinitions extends Utilities {
 
 	TestDataBuild data = new TestDataBuild();
 
-	@Given("Add Place payload")
-	public void add_place_payload() {
+	@Given("Add Place payload with {string} {string} {string}")
+	public void add_place_payload(String name, String language, String address) throws IOException {
 
 
 		responseSpec = new ResponseSpecBuilder()
@@ -36,7 +38,7 @@ public class StepDefinitions extends Utilities {
 
 		request = given()
 				.spec(requestSpecification())
-				.body(data.addPlacePayload());
+				.body(data.addPlacePayload(name, language, address));
 	}
 
 	@When("User calls {string} with POST request")
