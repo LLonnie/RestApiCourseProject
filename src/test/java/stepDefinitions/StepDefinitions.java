@@ -20,10 +20,10 @@ import static io.restassured.RestAssured.given;
 
 public class StepDefinitions extends Utilities {
 
-	RequestSpecification requestSpec;
 	RequestSpecification request;
 	ResponseSpecification responseSpec;
 	Response response;
+	static String placeID;
 
 	TestDataBuild data = new TestDataBuild();
 
@@ -42,7 +42,7 @@ public class StepDefinitions extends Utilities {
 	}
 
 	@When("User calls {string} with {string} request")
-	public void user_calls_with_post_request(String resource, String method) {
+	public void user_calls_with_request(String resource, String method) {
 		APIResources apiCall = APIResources.valueOf(resource);
 
 		if(method.equalsIgnoreCase("POST")) {
@@ -69,16 +69,25 @@ public class StepDefinitions extends Utilities {
 	}
 
 	@And("Verify place_Id created maps to {string} using {string}")
-	public void verify_placeId_created_maps_to_using_getPlaceAPI(String resource) throws IOException {
+	public void verify_placeId_created_maps_to_using(String expectedName, String resource) throws IOException {
 
-		String placeID = getJsonPath(response, "place_id");
+		placeID = getJsonPath(response, "place_id");
 
 		request = given()
 				.spec(requestSpecification())
 				.queryParam("place_id", placeID);
 
-		APIResources apiCall = APIResources.valueOf(resource);
+		user_calls_with_request(resource, "GET");
 
+		String name = getJsonPath(response, "name");
+		Assert.assertEquals(name, expectedName);
+	}
 
+	@Given("DeletePlace payload")
+	public void delete_place_payload() throws IOException {
+
+		request = given()
+				.spec(requestSpecification())
+				.body(data.deletePlacePayload(placeID));
 	}
 }
