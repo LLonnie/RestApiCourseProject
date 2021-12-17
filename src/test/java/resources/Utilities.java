@@ -4,9 +4,14 @@ import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import io.restassured.path.json.JsonPath;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Properties;
 
 public class Utilities {
@@ -33,5 +38,11 @@ public class Utilities {
 		FileInputStream fileInputStream = new FileInputStream("src/test/java/resources/global.properties");
 		properties.load(fileInputStream);
 		return properties.getProperty(key);
+	}
+
+	public static String getJsonPath(Response response, String key) {
+		String responseString = response.asString();
+		JsonPath jsonPath = new JsonPath(responseString);
+		return jsonPath.get(key).toString();
 	}
 }

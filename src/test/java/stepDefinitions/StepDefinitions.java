@@ -6,11 +6,11 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import org.testng.Assert;
+import resources.APIResources;
 import resources.TestDataBuild;
 import resources.Utilities;
 
@@ -41,14 +41,20 @@ public class StepDefinitions extends Utilities {
 				.body(data.addPlacePayload(name, language, address));
 	}
 
-	@When("User calls {string} with POST request")
-	public void user_calls_with_post_request(String apiCall) {
-		response = request
-				.when()
-				.post("/maps/api/place/add/json")
-				.then()
-				.spec(responseSpec)
-				.extract().response();
+	@When("User calls {string} with {string} request")
+	public void user_calls_with_post_request(String resource, String method) {
+		APIResources apiCall = APIResources.valueOf(resource);
+
+		if(method.equalsIgnoreCase("POST")) {
+			response = request.when().post(apiCall.getResource());
+		} else if(method.equalsIgnoreCase("GET")) {
+			response = request.when().get(apiCall.getResource());
+		} else if(method.equalsIgnoreCase("PUT")) {
+			response = request.when().put(apiCall.getResource());
+		} else if(method.equalsIgnoreCase("DELETE")) {
+			response = request.when().delete(apiCall.getResource());
+		}
+
 	}
 
 	@Then("The API call is successful with status code {string}")
@@ -58,8 +64,21 @@ public class StepDefinitions extends Utilities {
 
 	@And("{string} in response body is {string}")
 	public void in_response_body_is(String keyValue, String expectedValue) {
-		String responseString = response.asString();
-		JsonPath jsonPath = new JsonPath(responseString);
-		Assert.assertEquals(jsonPath.get(keyValue.toLowerCase()).toString(), expectedValue);
+
+		Assert.assertEquals(getJsonPath(response, keyValue), expectedValue);
+	}
+
+	@And("Verify place_Id created maps to {string} using {string}")
+	public void verify_placeId_created_maps_to_using_getPlaceAPI(String resource) throws IOException {
+
+		String placeID = getJsonPath(response, "place_id");
+
+		request = given()
+				.spec(requestSpecification())
+				.queryParam("place_id", placeID);
+
+		APIResources apiCall = APIResources.valueOf(resource);
+
+
 	}
 }
